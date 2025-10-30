@@ -1,3 +1,13 @@
+books = Book.objects.all()
+
+In [25]: book = Book.objects.get(title="1984")
+
+In [26]: book.title, book.author, book.published_date
+Out[26]: ('1984', 'George Orwell', 1949)
+
+In [23]: books
+Out[23]: <QuerySet [<Book: 1984 by George Orwell (1949)>]>
+
 In [4]: from bookshelf.models import Book      
 
 In [5]: books = Book.objects.all()
