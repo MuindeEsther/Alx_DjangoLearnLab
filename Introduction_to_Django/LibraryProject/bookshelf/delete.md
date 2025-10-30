@@ -1,3 +1,5 @@
+from bookshelf.models import Book
+
 In [32]: book = Book.objects.get(title="Ninete 
     ...: en Eighty-Four")
 
