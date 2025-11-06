@@ -49,6 +49,11 @@ def retrieve_librarian_for_library(library_name):
         return f"No library found with the name '{library_name}'"
     except Librarian.DoesNotExist:
         return f"No librarian assigned to '{library_name}'"
+
+# 3️⃣ Retrieve the librarian for a library
+def get_librarian_for_library(library_name):
+    librarian = Librarian.objects.get(library__name=library_name)
+    return librarian
     
 def display_results():
     print("Books by George Orwell:")
