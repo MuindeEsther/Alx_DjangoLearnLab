@@ -38,8 +38,18 @@ def get_librarian_for_library(library_name):
     except Librarian.DoesNotExist:
         return f"No librarian assigned to '{library_name}'"
 
-
-# Optional utility to demonstrate output
+def retrieve_librarian_for_library(library_name):
+    """
+    Return the librarian assigned to a specific library.
+    """
+    try:
+        library = Library.objects.get(name=library_name)
+        return library.librarian
+    except Library.DoesNotExist:
+        return f"No library found with the name '{library_name}'"
+    except Librarian.DoesNotExist:
+        return f"No librarian assigned to '{library_name}'"
+    
 def display_results():
     print("Books by George Orwell:")
     for book in get_books_by_author("George Orwell"):
