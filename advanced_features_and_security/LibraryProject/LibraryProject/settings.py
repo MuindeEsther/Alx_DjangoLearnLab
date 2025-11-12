@@ -140,6 +140,11 @@ SESSION_COOKIE_SECURE = True
 # Optional: Force HTTPS
 SECURE_SSL_REDIRECT = True
 
+# HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_SECONDS = 31536000  # 1 year in seconds
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
+SECURE_HSTS_PRELOAD = True  # Allow preloading in browsers
+
 # CSP middleware (optional, see Step 4)
 INSTALLED_APPS += ['csp']
 MIDDLEWARE += ['csp.middleware.CSPMiddleware']
