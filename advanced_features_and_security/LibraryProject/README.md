@@ -66,5 +66,15 @@ server {
         proxy_pass http://127.0.0.1:8000;  # Django app running locally
         include proxy_params;
     }
+
+    
 }
+
+location / {
+    proxy_pass http://127.0.0.1:8000;
+    proxy_set_header X-Forwarded-Proto $scheme;  # This sets HTTP_X_FORWARDED_PROTO
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+}
+
 ```

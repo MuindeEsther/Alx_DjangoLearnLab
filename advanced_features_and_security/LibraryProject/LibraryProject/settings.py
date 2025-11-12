@@ -140,6 +140,10 @@ SESSION_COOKIE_SECURE = True
 # Optional: Force HTTPS
 SECURE_SSL_REDIRECT = True
 
+# Tell Django that it is behind a proxy and HTTPS is handled by the proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 # HTTP Strict Transport Security (HSTS)
 SECURE_HSTS_SECONDS = 31536000  # 1 year in seconds
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True  # Apply HSTS to all subdomains
