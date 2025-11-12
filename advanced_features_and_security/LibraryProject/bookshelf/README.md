@@ -34,3 +34,26 @@ can_delete = Permission.objects.get(codename='can_delete', content_type=content_
 editors.permissions.set([can_create, can_edit])
 viewers.permissions.set([can_view])
 admins.permissions.set([can_view, can_create, can_edit, can_delete])
+
+# Django Security Best Practices Implemented
+
+1. Secure Settings:
+   - DEBUG=False
+   - CSRF_COOKIE_SECURE=True
+   - SESSION_COOKIE_SECURE=True
+   - SECURE_BROWSER_XSS_FILTER=True
+   - X_FRAME_OPTIONS='DENY'
+   - SECURE_CONTENT_TYPE_NOSNIFF=True
+   - SECURE_SSL_REDIRECT=True
+
+2. Templates:
+   - All POST forms include {% csrf_token %}
+
+3. Views:
+   - User input validated via Django forms
+   - ORM queries used instead of raw SQL
+   - Views protected with @login_required and @permission_required
+
+4. Content Security Policy:
+   - CSP headers set via middleware or django-csp
+
