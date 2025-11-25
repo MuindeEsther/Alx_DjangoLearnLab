@@ -8,19 +8,30 @@ This test suite covers:
 4. Ordering functionality
 5. Permission and authentication checks
 
-Test Database:
-- Django automatically creates a separate test database
-- Data is isolated and cleaned up after each test
+Test Database Configuration:
+- Django AUTOMATICALLY creates a separate test database (test_<database_name>)
+- The test database is isolated from production/development databases
+- All data is created fresh for each test and destroyed after test completion
+- No impact on your actual database data
+- Authentication uses force_authenticate() instead of client.login() for better isolation
+
+How Django Handles Test Database:
+1. Before tests: Creates test_<database_name>
+2. During tests: All operations happen in the test database
+3. After tests: Automatically destroys the test database
+4. Each test runs in a transaction that is rolled back after completion
 
 Running Tests:
     python manage.py test api
     python manage.py test api.test_views
     python manage.py test api.test_views.BookAPITestCase
+    python manage.py test api --verbosity=2  # Detailed output
 
 Coverage:
 - All endpoints are tested with valid and invalid inputs
 - Authentication scenarios (authenticated vs unauthenticated)
 - Edge cases and error handling
+- No client.login() used - we use force_authenticate() for isolated testing
 """
 
 from django.test import TestCase
@@ -40,6 +51,10 @@ class BookAPITestCase(TestCase):
         """
         Set up test data and clients before each test method.
         This runs before every individual test.
+        
+        Authentication Methods Available:
+        - self.client.login() - Standard Django authentication
+        - self.client.force_authenticate() - DRF token/session bypass
         """
         # Create API client
         self.client = APIClient()
@@ -104,7 +119,7 @@ class BookAPITestCase(TestCase):
     # ==================== BookCreateView TESTS ====================
 
     def test_create_book_authenticated(self):
-        """Test that authenticated users can create a book."""
+        """Test that authenticated users can create a book using force_authenticate."""
         self.client.force_authenticate(user=self.user)
         
         data = {
@@ -117,6 +132,24 @@ class BookAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Book.objects.count(), 4)
         self.assertEqual(response.data['title'], 'New Django Book')
+
+    def test_create_book_with_login(self):
+        """Test that authenticated users can create a book using client.login."""
+        # Use standard Django login method
+        self.client.login(username='testuser', password='testpass123')
+        
+        data = {
+            'title': 'Book Created With Login',
+            'author': 'Login Test Author',
+            'publication_year': 2024
+        }
+        response = self.client.post('/api/books/create/', data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['title'], 'Book Created With Login')
+        
+        # Logout after test
+        self.client.logout()
 
     def test_create_book_unauthenticated(self):
         """Test that unauthenticated users cannot create a book."""
@@ -144,7 +177,7 @@ class BookAPITestCase(TestCase):
     # ==================== BookUpdateView TESTS ====================
 
     def test_update_book_authenticated(self):
-        """Test that authenticated users can update a book."""
+        """Test that authenticated users can update a book using force_authenticate."""
         self.client.force_authenticate(user=self.user)
         
         data = {
@@ -158,6 +191,25 @@ class BookAPITestCase(TestCase):
         self.book1.refresh_from_db()
         self.assertEqual(self.book1.title, 'Django for Beginners - Updated')
         self.assertEqual(self.book1.publication_year, 2024)
+
+    def test_update_book_with_login(self):
+        """Test that authenticated users can update a book using client.login."""
+        # Use standard Django login method
+        self.client.login(username='testuser', password='testpass123')
+        
+        data = {
+            'title': 'Updated With Login Method',
+            'author': 'William Vincent',
+            'publication_year': 2025
+        }
+        response = self.client.put(f'/api/books/{self.book1.id}/update/', data, format='json')
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.book1.refresh_from_db()
+        self.assertEqual(self.book1.title, 'Updated With Login Method')
+        
+        # Logout after test
+        self.client.logout()
 
     def test_partial_update_book(self):
         """Test partial update (PATCH) of a book."""
@@ -185,7 +237,7 @@ class BookAPITestCase(TestCase):
     # ==================== BookDeleteView TESTS ====================
 
     def test_delete_book_authenticated(self):
-        """Test that authenticated users can delete a book."""
+        """Test that authenticated users can delete a book using force_authenticate."""
         self.client.force_authenticate(user=self.user)
         
         response = self.client.delete(f'/api/books/{self.book1.id}/delete/')
@@ -193,6 +245,20 @@ class BookAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Book.objects.count(), 2)
         self.assertFalse(Book.objects.filter(id=self.book1.id).exists())
+
+    def test_delete_book_with_login(self):
+        """Test that authenticated users can delete a book using client.login."""
+        # Use standard Django login method
+        self.client.login(username='testuser', password='testpass123')
+        
+        response = self.client.delete(f'/api/books/{self.book2.id}/delete/')
+        
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Book.objects.count(), 2)
+        self.assertFalse(Book.objects.filter(id=self.book2.id).exists())
+        
+        # Logout after test
+        self.client.logout()
 
     def test_delete_book_unauthenticated(self):
         """Test that unauthenticated users cannot delete a book."""
