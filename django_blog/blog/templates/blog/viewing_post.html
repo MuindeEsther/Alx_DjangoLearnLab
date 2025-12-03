@@ -18,8 +18,8 @@
             <a href="{% url 'blog:posts' %}" class="btn btn-secondary">Back to Posts</a>
             
             {% if user.is_authenticated and user == post.author %}
-                <a href="{% url 'blog:edit_post' post.id %}" class="btn" style="background-color: #27ae60;">Edit</a>
-                <a href="{% url 'blog:delete_post' post.id %}" class="btn btn-danger">Delete</a>
+                <a href="{% url 'blog:editing_post' post.id %}" class="btn" style="background-color: #27ae60;">Edit</a>
+                <a href="{% url 'blog:deleting_post' post.id %}" class="btn btn-danger">Delete</a>
             {% endif %}
         </div>
     </article>
