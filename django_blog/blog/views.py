@@ -6,6 +6,10 @@ from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django import forms
 from .models import Post
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
+from .forms import PostForm
 
 
 # Custom User Creation Form with Email field
@@ -117,72 +121,56 @@ def home(request):
     return render(request, 'blog/home.html', {'posts': posts})
 
 
-def posts_list(request):
-    """Display all blog posts with pagination."""
-    posts = Post.objects.all().order_by('-published_date')
-    return render(request, 'blog/posts_list.html', {'posts': posts})
+class PostListView(ListView):
+    model = Post
+    template_name = 'blog/posts_list.html'
+    context_object_name = 'posts'
+    ordering = ['-published_date']
+    paginate_by = 10
 
 
-def post_detail(request, post_id):
-    """Display a single blog post."""
-    post = get_object_or_404(Post, id=post_id)
-    return render(request, 'blog/post_detail.html', {'post': post})
+class PostDetailView(DetailView):
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
 
 
-@login_required(login_url='blog:login')
-def create_post(request):
-    """Allow authenticated users to create a new blog post."""
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        content = request.POST.get('content')
-        
-        if title and content:
-            post = Post.objects.create(
-                title=title,
-                content=content,
-                author=request.user
-            )
-            messages.success(request, 'Post created successfully!')
-            return redirect('blog:post_detail', post_id=post.id)
-        else:
-            messages.error(request, 'Title and content are required.')
-    
-    return render(request, 'blog/create_post.html')
+class PostCreateView(LoginRequiredMixin, CreateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/create_post.html'
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Post created successfully!')
+        return super().form_valid(form)
 
 
-@login_required(login_url='blog:login')
-def edit_post(request, post_id):
-    """Allow authors to edit their own posts."""
-    post = get_object_or_404(Post, id=post_id)
-    
-    # Check if user is the author
-    if post.author != request.user:
-        messages.error(request, 'You do not have permission to edit this post.')
-        return redirect('blog:post_detail', post_id=post.id)
-    
-    if request.method == 'POST':
-        post.title = request.POST.get('title', post.title)
-        post.content = request.POST.get('content', post.content)
-        post.save()
-        messages.success(request, 'Post updated successfully!')
-        return redirect('blog:post_detail', post_id=post.id)
-    
-    return render(request, 'blog/edit_post.html', {'post': post})
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/edit_post.html'
+    context_object_name = 'post'
+
+    def test_func(self):
+        post = self.get_object()
+        return post.author == self.request.user
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Post updated successfully!')
+        return super().form_valid(form)
 
 
-@login_required(login_url='blog:login')
-def delete_post(request, post_id):
-    """Allow authors to delete their own posts."""
-    post = get_object_or_404(Post, id=post_id)
-    
-    # Check if user is the author
-    if post.author != request.user:
-        messages.error(request, 'You do not have permission to delete this post.')
-        return redirect('blog:post_detail', post_id=post.id)
-    
-    if request.method == 'POST':
-        post.delete()
-        messages.success(request, 'Post deleted successfully!')
-        return redirect('blog:posts')
-    
-    return render(request, 'blog/delete_post.html', {'post': post})
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Post
+    template_name = 'blog/delete_post.html'
+    context_object_name = 'post'
+    success_url = reverse_lazy('blog:posts')
+
+    def test_func(self):
+        post = self.get_object()
+        return post.author == self.request.user
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Post deleted successfully!')
+        return super().delete(request, *args, **kwargs)
