@@ -111,7 +111,7 @@ def edit_profile(request):
     else:
         form = UserEditForm(instance=request.user)
     
-    return render(request, 'blog/editing_post.html', {'form': form})
+    return render(request, 'blog/edit_profile.html', {'form': form})
 
 
 # Blog Views
@@ -165,7 +165,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/deleting_post.html'
     context_object_name = 'post'
-    success_url = reverse_lazy('blog:posts')
+    success_url = reverse_lazy('blog:post')
 
     def test_func(self):
         post = self.get_object()
