@@ -117,14 +117,14 @@ def edit_profile(request):
 # Blog Views
 def home(request):
     """Display home page with recent posts."""
-    posts = Post.objects.all().order_by('-published_date')[:5]
-    return render(request, 'blog/home.html', {'posts': posts})
+    post = Post.objects.all().order_by('-published_date')[:5]
+    return render(request, 'blog/home.html', {'post': post})
 
 
 class PostListView(ListView):
     model = Post
     template_name = 'blog/posts_list.html'
-    context_object_name = 'posts'
+    context_object_name = 'post'
     ordering = ['-published_date']
     paginate_by = 10
 

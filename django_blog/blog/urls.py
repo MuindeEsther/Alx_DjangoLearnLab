@@ -8,11 +8,11 @@ urlpatterns = [
     path('', views.home, name='home'),
 
     # Blog posts (CRUD using class-based views)
-    path('posts/', views.PostListView.as_view(), name='posts'),
-    path('posts/new/', views.PostCreateView.as_view(), name='create_post'),
-    path('posts/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),
-    path('posts/<int:pk>/edit/', views.PostUpdateView.as_view(), name='edit_post'),
-    path('posts/<int:pk>/delete/', views.PostDeleteView.as_view(), name='delete_post'),
+    path('post/', views.PostListView.as_view(), name='post'),
+    path('post/new/', views.PostCreateView.as_view(), name='create_post'),
+    path('post/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),
+    path('post/<int:pk>/edit/', views.PostUpdateView.as_view(), name='edit_post'),
+    path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='delete_post'),
 
     # Authentication
     path('register/', views.register, name='register'),
