@@ -55,7 +55,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, f'Welcome, {user.username}! Your account has been created successfully.')
-            return redirect('blog:post')
+            return redirect('blog:listing_post')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -69,7 +69,7 @@ def register(request):
 def login_view(request):
     """Handle user login."""
     if request.user.is_authenticated:
-        return redirect('blog:post')
+        return redirect('blog:listing_post')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -79,7 +79,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
-            return redirect('blog:post')
+            return redirect('blog:listing_post')
         else:
             messages.error(request, 'Invalid username or password.')
     
@@ -165,7 +165,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
     template_name = 'blog/deleting_post.html'
     context_object_name = 'post'
-    success_url = reverse_lazy('blog:post')
+    success_url = reverse_lazy('blog:listing_post')
 
     def test_func(self):
         post = self.get_object()
