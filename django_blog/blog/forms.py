@@ -1,7 +1,15 @@
 from django import forms
 from .models import Post, Comment
 
+class TagWidget(forms.TextInput):
+    template_name = 'django/forms/widgets/text.html'
 
+    def __init__(self, *args, **kwargs):
+        attrs = kwargs.get("attrs", {})
+        attrs.setdefault('class', 'form-control')
+        attrs.setdefault('placeholder', 'Enter tags separated by commas')
+        kwargs["attrs"] = attrs
+        super().__init__(*args, **kwargs)
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
