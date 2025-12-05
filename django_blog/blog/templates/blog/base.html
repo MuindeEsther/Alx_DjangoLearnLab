@@ -101,9 +101,9 @@
         <nav>
             <ul>
                 <li><a href="{% url 'blog:home' %}">Home</a></li>
-                <li><a href="{% url 'blog:post' %}">Blog Posts</a></li>
+                <li><a href="{% url 'blog:listing_post' %}">Blog Posts</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'blog:create_post' %}">New Post</a></li>
+                    <li><a href="{% url 'blog:creating_post' %}">New Post</a></li>
                     <li><a href="{% url 'blog:profile' %}">Profile</a></li>
                     <li><a href="{% url 'blog:logout' %}">Logout ({{ user.username }})</a></li>
                 {% else %}

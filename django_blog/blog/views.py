@@ -55,7 +55,7 @@ def register(request):
             user = form.save()
             login(request, user)
             messages.success(request, f'Welcome, {user.username}! Your account has been created successfully.')
-            return redirect('blog:posts')
+            return redirect('blog:listing_post')
         else:
             for field, errors in form.errors.items():
                 for error in errors:
@@ -69,7 +69,7 @@ def register(request):
 def login_view(request):
     """Handle user login."""
     if request.user.is_authenticated:
-        return redirect('blog:posts')
+        return redirect('blog:listing_post')
     
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -79,7 +79,7 @@ def login_view(request):
         if user is not None:
             login(request, user)
             messages.success(request, f'Welcome back, {user.username}!')
-            return redirect('blog:posts')
+            return redirect('blog:listing_post')
         else:
             messages.error(request, 'Invalid username or password.')
     
@@ -123,7 +123,7 @@ def home(request):
 
 class PostListView(ListView):
     model = Post
-    template_name = 'blog/posts_list.html'
+    template_name = 'blog/listing_post.html'
     context_object_name = 'post'
     ordering = ['-published_date']
     paginate_by = 10
@@ -131,14 +131,14 @@ class PostListView(ListView):
 
 class PostDetailView(DetailView):
     model = Post
-    template_name = 'blog/post_detail.html'
+    template_name = 'blog/viewing_post.html'
     context_object_name = 'post'
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
-    template_name = 'blog/create_post.html'
+    template_name = 'blog/creating_post.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -149,7 +149,7 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostForm
-    template_name = 'blog/edit_post.html'
+    template_name = 'blog/editing_post.html'
     context_object_name = 'post'
 
     def test_func(self):
@@ -163,9 +163,9 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    template_name = 'blog/delete_post.html'
+    template_name = 'blog/deleting_post.html'
     context_object_name = 'post'
-    success_url = reverse_lazy('blog:posts')
+    success_url = reverse_lazy('blog:listing_post')
 
     def test_func(self):
         post = self.get_object()

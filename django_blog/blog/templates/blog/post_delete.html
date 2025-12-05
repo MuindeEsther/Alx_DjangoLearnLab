@@ -21,7 +21,7 @@
         
         <div style="display: flex; gap: 1rem;">
             <button type="submit" class="btn btn-danger">Yes, Delete This Post</button>
-            <a href="{% url 'blog:post_detail' post.id %}" class="btn btn-secondary">Cancel</a>
+            <a href="{% url 'blog:viewing_post' post.id %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
 </div>
