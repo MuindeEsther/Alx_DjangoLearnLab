@@ -10,6 +10,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
 from .forms import PostForm, CommentForm
+from django.db.models import Q
+from taggit.models import Tag
 
 
 # Custom User Creation Form with Email field
@@ -184,8 +186,45 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         messages.success(self.request, 'Post deleted successfully!')
         return super().delete(request, *args, **kwargs)
     
+# Search View
+def search_posts(request):
+    """Search posts by title, content, or tags."""
+    query = request.GET.get('q', '')
+    posts = Post.objects.all()
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    context = {
+        'posts': posts,
+        'query': query,
+    }
+    return render(request, 'blog/search_results.html', context)
 
- # Comment Views
+# Tag View
+class PostByTagListView(ListView):
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        self.tag = get_object_or_404(Tag, slug=tag_slug)
+        return Post.objects.filter(tags__in=[self.tag])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
+        return context
+
+    
+
+# Comment Views
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
