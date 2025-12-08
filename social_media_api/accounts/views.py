@@ -1,0 +1,104 @@
+from django.shortcuts import render
+from rest_framework import status, generics
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.authtoken.models import Token
+from django.contrib.auth import authenticate, get_user_model
+from .serializers import (
+    UserRegistrationSerializer,
+    UserLoginSerializer,
+    UserProfileSerializer
+)
+
+User = get_user_model()
+
+
+class UserRegistrationView(generics.CreateAPIView):
+    """
+    API endpoint for user registration.
+    Returns user data and authentication token.
+    """
+    queryset = User.objects.all()
+    permission_classes = (AllowAny,)
+    serializer_class = UserRegistrationSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        # Generate token for the new user
+        token, created = Token.objects.get_or_create(user=user)
+        
+        # Return user data with token
+        user_data = UserProfileSerializer(user).data
+        
+        return Response({
+            'user': user_data,
+            'token': token.key,
+            'message': 'User registered successfully'
+        }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def user_login(request):
+    """
+    API endpoint for user login.
+    Returns authentication token on successful login.
+    """
+    serializer = UserLoginSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
+        
+        user = authenticate(username=username, password=password)
+        
+        if user is not None:
+            token, created = Token.objects.get_or_create(user=user)
+            user_data = UserProfileSerializer(user).data
+            
+            return Response({
+                'user': user_data,
+                'token': token.key,
+                'message': 'Login successful'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': 'Invalid credentials'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def user_logout(request):
+    """
+    API endpoint for user logout.
+    Deletes the user's authentication token.
+    """
+    try:
+        request.user.auth_token.delete()
+        return Response({
+            'message': 'Logout successful'
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({
+            'error': str(e)
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileView(generics.RetrieveUpdateAPIView):
+    """
+    API endpoint for retrieving and updating user profile.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserProfileSerializer
+
+    def get_object(self):
+        return self.request.user
+
+
