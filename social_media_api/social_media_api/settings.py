@@ -98,6 +98,15 @@ DATABASES = {
         "NAME": BASE_DIR / "db.sqlite3",
     }
 }
+if config('DATABASE_URL', default=None) and HAS_DJ_DATABASE_URL:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('POSTGRES_DB', default='mydb'),
+        'USER': config('POSTGRES_USER', default='myuser'),
+        'PASSWORD': config('POSTGRES_PASSWORD', default='mypassword'),
+        'HOST': config('POSTGRES_HOST', default='localhost'),
+        'PORT': config('POSTGRES_PORT', default='5432'),
+    }
 
 # Use PostgreSQL in production
 if config('DATABASE_URL', default=None) and HAS_DJ_DATABASE_URL:
