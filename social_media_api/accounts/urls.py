@@ -4,8 +4,8 @@ from .views import (
     user_login,
     user_logout,
     UserProfileView,
-    follow_user,
-    unfollow_user,
+    FollowUserView,
+    UnfollowUserView,
     FollowersListView,
     FollowingListView,
     UserFollowersView,
@@ -19,8 +19,8 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='profile'),
     
     # Follow/Unfollow endpoints
-    path('follow/<int:user_id>/', follow_user, name='follow-user'),
-    path('unfollow/<int:user_id>/', unfollow_user, name='unfollow-user'),
+    path('follow/<int:user_id>/', FollowUserView.as_view(), name='follow-user'),
+    path('unfollow/<int:user_id>/', UnfollowUserView.as_view(), name='unfollow-user'),
     
     # Followers/Following lists
     path('followers/', FollowersListView.as_view(), name='followers-list'),
