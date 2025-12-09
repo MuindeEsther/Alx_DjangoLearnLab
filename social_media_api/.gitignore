@@ -1,0 +1,72 @@
+# --------------------------
+# PYTHON / DJANGO PROJECT
+# --------------------------
+
+# Bytecode
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+ENV/
+.virtualenv/
+
+# Django stuff
+*.sqlite3
+db.sqlite3
+
+media/
+static/
+staticfiles/
+logs/
+*.log
+
+# Secrets
+.env
+*.env
+.env.local
+secrets.json
+
+# Migrations (Keep migrations — ALX requires them)
+# If you ever want to ignore migrations, uncomment:
+# */migrations/
+# !*/migrations/__init__.py
+
+# Django cache
+*.cache
+
+# Gunicorn
+gunicorn.log
+
+# --------------------------
+# OS & IDE
+# --------------------------
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/
+
+# PyCharm/JetBrains
+.idea/
+
+# --------------------------
+# DOCKER
+# --------------------------
+# Docker env files
+docker.env
+.env.docker
+
+# Docker build artifacts
+*.pid
+
