@@ -13,8 +13,10 @@ from .serializers import (
     UserSummarySerializer,
     FollowSerializer
 )
+from .models import CustomUser
 
-User = get_user_model()
+
+# CustomUser = get_user_model()
 
 
 class UserRegistrationView(generics.CreateAPIView):
@@ -22,7 +24,7 @@ class UserRegistrationView(generics.CreateAPIView):
     API endpoint for user registration.
     Returns user data and authentication token.
     """
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
     permission_classes = (AllowAny,)
     serializer_class = UserRegistrationSerializer
 
@@ -106,7 +108,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
 
 class FollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
         user_to_follow = get_object_or_404(User, id=user_id)
@@ -128,7 +130,7 @@ class FollowUserView(generics.GenericAPIView):
 
 class UnfollowUserView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = User.objects.all()
+    queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
         user_to_unfollow = get_object_or_404(User, id=user_id)
