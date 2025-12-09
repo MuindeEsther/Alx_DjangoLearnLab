@@ -4,7 +4,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.contrib.auth import get_user_model
-from .models import Post, Comment
+from .models import Post, Comment, Like
+from notifications.utils import create_notification  
 from .serializers import (
     PostSerializer,
     PostListSerializer,
@@ -72,6 +73,38 @@ class PostViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(posts, many=True)
         return Response(serializer.data)
+    
+    action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def like(self, request, pk=None):
+        post = self.get_object()
+        user = request.user
+
+        if Like.objects.filter(user=user, post=post).exists():
+            return Response({"error": "You already liked this post."}, status=400)
+
+        Like.objects.create(user=user, post=post)
+
+        # Create notification
+        create_notification(
+            recipient=post.author,
+            actor=user,
+            verb="liked your post",
+            target=post
+        )
+
+        return Response({"message": "Post liked successfully."})
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def unlike(self, request, pk=None):
+        post = self.get_object()
+        user = request.user
+
+        like = Like.objects.filter(user=user, post=post).first()
+        if not like:
+            return Response({"error": "You have not liked this post."}, status=400)
+
+        like.delete()
+        return Response({"message": "Post unliked successfully."})
 
 
 class CommentViewSet(viewsets.ModelViewSet):
