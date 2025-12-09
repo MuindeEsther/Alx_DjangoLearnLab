@@ -15,7 +15,7 @@ from .serializers import (
     FollowSerializer
 )
 from .models import CustomUser
-
+permission_classes = [permissions.IsAuthenticated]
 
 # CustomUser = get_user_model()
 
@@ -108,7 +108,8 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 class FollowUserView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+
     queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
