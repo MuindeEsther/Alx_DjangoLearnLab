@@ -111,7 +111,7 @@ class FollowUserView(generics.GenericAPIView):
     queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
-        user_to_follow = get_object_or_404(User, id=user_id)
+        user_to_follow = get_object_or_404(CustomUser, id=user_id)
 
         if user_to_follow == request.user:
             return Response({'error': 'You cannot follow yourself.'},
@@ -133,7 +133,7 @@ class UnfollowUserView(generics.GenericAPIView):
     queryset = CustomUser.objects.all()
 
     def post(self, request, user_id):
-        user_to_unfollow = get_object_or_404(User, id=user_id)
+        user_to_unfollow = get_object_or_404(CustomUser, id=user_id)
 
         if user_to_unfollow == request.user:
             return Response({'error': 'You cannot unfollow yourself.'},
@@ -178,7 +178,7 @@ class UserFollowersView(generics.ListAPIView):
     
     def get_queryset(self):
         user_id = self.kwargs.get('user_id')
-        user = get_object_or_404(User, id=user_id)
+        user = get_object_or_404(CustomUser, id=user_id)
         return user.followers.all()
 
 
@@ -190,5 +190,5 @@ class UserFollowingView(generics.ListAPIView):
     
     def get_queryset(self):
         user_id = self.kwargs.get('user_id')
-        user = get_object_or_404(User, id=user_id)
+        user = get_object_or_404(CustomUser, id=user_id)
         return user.following.all()
