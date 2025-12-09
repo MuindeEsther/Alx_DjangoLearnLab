@@ -1,8 +1,9 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, filters, status
+from rest_framework import viewsets, permissions, filters, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+from django.contrib.auth import get_user_model
 from .models import Post, Comment
 from .serializers import (
     PostSerializer,
@@ -13,6 +14,7 @@ from .permissions import IsAuthorOrReadOnly
 from .pagination import StandardResultsPagination
 # Create your views here.
 
+User = get_user_model()
 class PostViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Post model.
@@ -106,4 +108,47 @@ class CommentViewSet(viewsets.ModelViewSet):
             return self.get_paginated_response(serializer.data)
         
         serializer = self.get_serializer(comments, many=True)
+        return Response(serializer.data)
+    
+class FeedView(generics.ListAPIView):
+    """
+    Feed view that displays posts from users the authenticated user follows.
+    Posts are ordered by creation date (newest first).
+    """
+    serializer_class = PostListSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    pagination_class = StandardResultsPagination
+    
+    def get_queryset(self):
+        """
+        Return posts from users that the current user follows.
+        """
+        user = self.request.user
+        # Get all users the current user is following
+        following_users = user.following.all()
+        # Return posts from those users, ordered by creation date
+        return Post.objects.filter(
+            author__in=following_users
+        ).select_related('author').order_by('-created_at')
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Override list to add additional context.
+        """
+        queryset = self.get_queryset()
+        
+        # If user is not following anyone
+        if not queryset.exists():
+            return Response({
+                'message': 'Your feed is empty. Start following users to see their posts!',
+                'count': 0,
+                'results': []
+            }, status=status.HTTP_200_OK)
+        
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

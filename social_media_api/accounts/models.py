@@ -27,4 +27,21 @@ class CustomUser(AbstractUser):
     @property
     def following_count(self):
         return self.following.count()
+    
+    def follow(self, user):
+        """Follow another user"""
+        if user != self:
+            user.followers.add(self)
+    
+    def unfollow(self, user):
+        """Unfollow a user"""
+        user.followers.remove(self)
+    
+    def is_following(self, user):
+        """Check if this user is following another user"""
+        return self.following.filter(id=user.id).exists()
+    
+    def is_followed_by(self, user):
+        # Check if this user is followed by another user
+        return self.followers.filter(id=user.id).exists()
    

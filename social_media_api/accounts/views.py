@@ -5,10 +5,13 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, get_user_model
+from django.shortcuts import get_object_or_404
 from .serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
-    UserProfileSerializer
+    UserProfileSerializer,
+    UserSummarySerializer,
+    FollowSerializer
 )
 
 User = get_user_model()
@@ -101,4 +104,105 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def follow_user(request, user_id):
+    """
+    Follow a user.
+    """
+    user_to_follow = get_object_or_404(User, id=user_id)
+    
+    # Check if trying to follow self
+    if user_to_follow == request.user:
+        return Response({
+            'error': 'You cannot follow yourself.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if already following
+    if request.user.is_following(user_to_follow):
+        return Response({
+            'error': 'You are already following this user.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Follow the user
+    request.user.follow(user_to_follow)
+    
+    return Response({
+        'message': f'You are now following {user_to_follow.username}.',
+        'user': UserSummarySerializer(user_to_follow, context={'request': request}).data
+    }, status=status.HTTP_200_OK)
 
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfollow_user(request, user_id):
+    """
+    Unfollow a user.
+    """
+    user_to_unfollow = get_object_or_404(User, id=user_id)
+    
+    # Check if trying to unfollow self
+    if user_to_unfollow == request.user:
+        return Response({
+            'error': 'You cannot unfollow yourself.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if not following
+    if not request.user.is_following(user_to_unfollow):
+        return Response({
+            'error': 'You are not following this user.'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Unfollow the user
+    request.user.unfollow(user_to_unfollow)
+    
+    return Response({
+        'message': f'You have unfollowed {user_to_unfollow.username}.',
+        'user': UserSummarySerializer(user_to_unfollow, context={'request': request}).data
+    }, status=status.HTTP_200_OK)
+
+
+class FollowersListView(generics.ListAPIView):
+    """
+    List all followers of the authenticated user.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSummarySerializer
+    
+    def get_queryset(self):
+        return self.request.user.followers.all()
+
+
+class FollowingListView(generics.ListAPIView):
+    """
+    List all users the authenticated user is following.
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserSummarySerializer
+    
+    def get_queryset(self):
+        return self.request.user.following.all()
+
+
+class UserFollowersView(generics.ListAPIView):
+    """
+    List followers of a specific user.
+    """
+    serializer_class = UserSummarySerializer
+    
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        user = get_object_or_404(User, id=user_id)
+        return user.followers.all()
+
+
+class UserFollowingView(generics.ListAPIView):
+    """
+    List users that a specific user is following.
+    """
+    serializer_class = UserSummarySerializer
+    
+    def get_queryset(self):
+        user_id = self.kwargs.get('user_id')
+        user = get_object_or_404(User, id=user_id)
+        return user.following.all()

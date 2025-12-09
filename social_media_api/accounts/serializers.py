@@ -63,3 +63,33 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'username', 'created_at', 'updated_at')
+
+class UserSummarySerializer(serializers.ModelSerializer):
+    is_following = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = User
+        fields = (
+            'id', 'username', 'email', 'bio', 'profile_picture',
+            'followers_count', 'following_count', 'is_following'
+        )
+        read_only_fields = fields
+    
+    def get_is_following(self, obj):
+        # Check if the requesting user is following this user
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user.is_following(obj)
+        return False
+
+
+class FollowSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    
+    def validate_user_id(self, value):
+        """Validate that the user exists"""
+        try:
+            User.objects.get(id=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("User not found.")
+        return value
